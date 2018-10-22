@@ -1,0 +1,9 @@
+-- Open Ganasche
+-- Open metamask 
+	-- Add custom RPC depending on the RPC server ganashe is running (http://127.0.0.1:7545)
+	-- Connect to the Private network with the specified RPC
+	-- Create accounts
+-- Deploy contract to blockchain
+$ Truffle migrate --reset
+--Start the development server
+$ npm start run

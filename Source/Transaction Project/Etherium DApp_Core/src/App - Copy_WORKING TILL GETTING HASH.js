@@ -1,0 +1,363 @@
+/*
+  Date: 12 July 2018
+  Purppose: Set and get the IPFS hash stored in the block chain
+
+  Most of this is boiler plate code. But optimized and changed according to project requirements
+
+  Full code along with documentations hosted in git. Please follow:
+    https://gitlab.tu-berlin.de/mandir123/SemanticWebAndIOT
+*/
+import React, { Component } from 'react'
+import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
+import getWeb3 from './utils/getWeb3'
+import ipfs from './Ipfs'
+var os = require("os");
+
+import './css/oswald.css'
+import './css/open-sans.css'
+import './css/pure-min.css'
+import './App.css'
+import { read } from 'fs';
+import { EOL } from 'os';
+
+let directory = "DataFiles"
+let dirBuffer = Buffer.from(directory);
+var currentDate
+var Message 
+class App extends Component {
+  constructor(props) {
+    super(props)
+    this.onSubmit = this.onSubmit.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.FetchData = this.FetchData.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    //Set states of the variables
+    this.state = {
+      storageValue: 0,
+      ipfsHash: '',   // the ipfs hash stored in the blockchain     
+      ipfs_log_hash: 'QmTRG7kJQYDqFUMWoLWVCQHJUbKShQX5FCWVB1X9AzcDQJ',
+      account:  '',   // current user account
+      web3: null,
+      Year: '',
+      Day: '',
+      Month: '',    
+      FileNameFromUser: '',
+      SelectedFileName: ''
+    }    
+  }
+
+  
+  // This will fire somewhere around the time of render
+  componentWillMount() {
+    // Get network provider and web3 instance.
+    // See utils/getWeb3 for more info.
+    
+
+    getWeb3
+    .then(results => {
+      this.setState({
+        web3: results.web3
+      })
+
+      // Instantiate contract once web3 provided.
+      this.instantiateContract()
+    })
+    .catch(() => {
+      console.log('Error finding web3.')
+    })
+  }
+
+  instantiateContract() {
+    /*
+     * SMART CONTRACT EXAMPLE
+     *
+     * Normally these functions would be called in the context of a
+     * state management library, but this is for convinience only.
+     */
+
+    const contract = require('truffle-contract')
+    const simpleStorage = contract(SimpleStorageContract)
+    simpleStorage.setProvider(this.state.web3.currentProvider)
+
+    // Declaring this for later so we can chain functions on SimpleStorage.
+    var simpleStorageInstance
+
+    // Get accounts. 
+    
+    this.state.web3.eth.getAccounts((error, accounts) => {
+      simpleStorage.deployed().then((instance) => {
+        this.simpleStorageInstance = instance
+        this.setState( { account: accounts[0]} )        
+      }).then((ipfsHash) => {
+        // Get the value from the contract to prove it worked.
+        return simpleStorageInstance.get.call(accounts[0])
+      }).then((ipfsHash) => {
+        // Update state with the result.
+        return this.setState({ ipfsHash })
+      })
+    })
+  }
+
+  handleFileSelect = (e) => {
+    e.preventDefault();
+    this.fileSelector.click();
+  }
+
+FetchData(event)
+{
+  event.preventDefault();
+
+  var returnval = this.simpleStorageInstance.get_value(this.state.FileNameFromUser).then(function(h, o, s) {
+    //along with reading the value, try getting the value as well to make sure the contract was committed. This can be 
+    //removed later once the test functions are in place 
+    
+    console.log("Getting results...")
+    console.log("Hash: ", h)      
+    console.log("Owner: ", o)
+    console.log("Sender: ", s)    
+    //return this.setState({ ipfsHash: r[0].hash })
+  });
+  console.log("Your hash is: ", this.state.ipfsHash)
+
+}
+
+ onSubmit(event)
+ {  
+    event.preventDefault();
+    let currentComponent = this;
+    console.log("File Submitted...")
+    /*
+    var datetime = new Date();
+    
+    currentDate = datetime.getFullYear();
+    currentDate += '-';
+    currentDate += datetime.getMonth();
+    currentDate += '-';
+    currentDate += datetime.getDate();
+    console.log(currentDate);
+    */
+
+   // Message = "Setting for " + currentDate + " uploaded to ipfs successfully";
+
+    ipfs.files.add(this.state.buffer, (error, result) => {
+     if (error)
+     {
+       console.error(error)
+       return
+     }
+     console.log("Setting hash from result")
+    
+     console.log("Generated ipfs hash ", result[0].hash) 
+
+     /*
+     var fs = require('browserify-fs');
+    
+       fs.writeFile('D:\Saved_Records.txt', this.state.SelectedFileName + "_" + result[0].hash, function() {
+           fs.readFile('D:\Saved_Records.txt', 'utf8', function(err, data) {
+               console.log(data);
+           });
+       });
+
+      */
+     
+  
+     //Write to the solidity contract
+     //The user details here might not be necessary but could be useful for the  later envisoned changes
+     this.simpleStorageInstance.set_value(result[0].hash, this.state.SelectedFileName, { from: this.state.account }).then((r) => {
+       //along with reading the value, try getting the value as well to make sure the contract was committed. This can be 
+       //removed later once the test functions are in place       
+     
+      
+       return this.setState({ ipfsHash: result[0].hash })    
+       
+     
+    })   
+    console.log("Created a block chain with the ipfs hash ", this.state.ipfsHash) 
+   })
+
+  var fs = require('browserify-fs');
+   //console.log(currentDate);
+   fs.appendFile('D:\dates6.txt', "\n" + this.state.SelectedFileName, function() {
+    fs.readFile('D:\dates6.txt', 'utf8', function(err, data) {
+        console.log(data);
+        var myBuffer = Buffer.from(data);
+        //this.setState({buffer: Buffer.from(data)});
+        ipfs.files.add(myBuffer, (error, result) => {
+        if (error)
+        {
+          console.error(error)
+          return
+        }
+
+        
+        console.log("Writting log file to ipfs")
+     
+        console.log("Generated ipfs hash for log file is", result[0].hash) 
+        
+        currentComponent.setState({ ipfs_log_hash: result[0].hash }) 
+        console.log("aa", result[0].hash)
+     })    
+    
+    });
+ 
+
+
+    /*var fs = require('browserify-fs');
+
+    fs.readFile('D:\dates.txt', 'utf8', function(err, data) {    
+        var currentData = data
+
+
+    var myBuffer = Buffer.from(currentData)
+    ipfs.files.add(myBuffer, (error, result) => {
+      if (error)
+      {
+        console.error(error)
+        return
+      }
+      console.log("Writting log file to ipfs")
+     
+      console.log("Generated ipfs hash for log file is", result[0].hash) 
+       
+      return this.setState({ ipfs_log_hash: result[0].hash })    
+        
+      
+     })    
+    });
+  */
+  });
+ }
+
+ //Added an event to prevent the default dehavior where the the form directs to a new page.
+ onChange(event)
+ {
+   console.log("Read the file...")
+   event.preventDefault();
+  //read the bin data for compatibility with the IPFS file format.
+   const file = event.target.files[0];
+   console.log("Selected file is: ", event.target.value); 
+   var filename = event.target.value.split('\\').pop().split('/').pop();
+   console.log("Selected file is: ", filename);
+   this.setState({ SelectedFileName: filename })
+   const reader = new window.FileReader()
+   reader.readAsArrayBuffer(file)
+   reader.onloadend = () => {
+     this.setState({ buffer: Buffer(reader.result)})
+     console.log("File read to bin...")
+     console.log("The blob data is: ", this.state.buffer)
+   }   
+ }
+ 
+ handleChange(event)
+ {
+   console.log("Got the date value...")
+   event.preventDefault();
+   this.setState({FileNameFromUser: event.target.value});
+ }
+
+onRefreshClick(event)
+{  
+  event.preventDefault();
+  let currentComponent = this;
+  console.log("Refresh clicked...")
+  var fs = require('browserify-fs');
+   //console.log(currentDate);
+   
+    fs.readFile('D:\dates5.txt', 'utf8', function(err, data) {
+        console.log(data);
+
+        var myBuffer = Buffer.from(data);
+        ipfs.files.add(myBuffer, (error, result) => {
+        if (error)
+        {
+          console.error(error)
+          return
+        }
+        console.log( result[0].hash);
+       
+        console.log("Writting log file to ipfs")
+     
+        console.log("Generated ipfs hash for log file is", result[0].hash) 
+        
+        currentComponent.setState({ ipfs_log_hash: result[0].hash }) 
+        console.log("aa", result[0].hash)
+       
+    
+    });
+ 
+
+
+    /*var fs = require('browserify-fs');
+
+    fs.readFile('D:\dates.txt', 'utf8', function(err, data) {    
+        var currentData = data
+
+
+    var myBuffer = Buffer.from(currentData)
+    ipfs.files.add(myBuffer, (error, result) => {
+      if (error)
+      {
+        console.error(error)
+        return
+      }
+      console.log("Writting log file to ipfs")
+     
+      console.log("Generated ipfs hash for log file is", result[0].hash) 
+       
+      return this.setState({ ipfs_log_hash: result[0].hash })    
+        
+      
+     })    
+    });
+  */
+  });
+}
+
+  render() {
+    return (
+      <div className="App">
+        <nav className="navbar pure-menu pure-menu-horizontal">
+          <a href="#" className="pure-menu-heading pure-menu-link">Block chain sample app</a>
+        </nav>
+        <main className="container">
+          <div className="pure-g">
+            <div className="pure-u-1-1">
+              <p>&nbsp;</p>
+              <div id="list">   
+              <p>Your currently available data are:</p>     
+               <button  className="btn btn-default"  onClick={this.onRefreshClick}>Refresh view</button>     
+               <p><iframe src={`https://ipfs.io/ipfs/${this.state.ipfs_log_hash}`} frameborder="0" height="100"
+                   width="95%"></iframe></p>
+              </div>
+              <p src='${this.state.account}'></p>
+              <h2>Upload new file to Ipfs</h2>
+              <form onSubmit={this.onSubmit} >
+                <input type='file' onChange={this.onChange} />
+                <input type='submit' />
+              </form>   
+              
+
+            </div>
+          </div>
+        </main>
+        <main className="container">
+          <div className="pure-g">
+            <div className="pure-u-1-1">
+              <h2>Preform new transaction</h2>   
+                <form onSubmit={this.FetchData} >
+                  <div class="block">
+                    <label>Enter desired date: </label>
+                    <input  type="text"  value={this.state.value} onChange={this.handleChange}/>  
+                    <input type='submit' />                           
+                  </div>  
+                </form>
+              </div>
+            </div>
+        </main>
+
+      </div>
+    );
+  }
+}
+
+export default App
