@@ -6,20 +6,20 @@
 	- Did this project as a part of our Advanced Web Technology Course at TU Berlin in collaboration with Fraunhofer Fokus.
 	
 	- Used:
-		-	Etherium BlockChain and Truffle framework.
-		- 	Solidity to write Smart Contracts
-		- 	Ganache as personal testing blockchain
-		-	Metamask for interacting with blockchain.
-		-	IPFS to store files 
+		- Etherium BlockChain and Truffle framework.
+		- Solidity to write Smart Contracts
+		- Ganache as personal testing blockchain
+		- Metamask for interacting with blockchain.
+		- IPFS to store files 
 		
 	- Front end development we used Reactjs and Node.js framework for backend.
 	
 **Implementation basics:**
 
-	-	Get periodic weather data from sense hat and store these data in seperate files.
-	-	Store these files in IPFS 
-	-	Allow users to deploy these files to block chain via smart contract.
-	-	Etherium contract to enable users to transact the IOT data with ether as currency.
+	- Get periodic weather data from sense hat and store these data in seperate files.
+	- Store these files in IPFS 
+	- Allow users to deploy these files to block chain via smart contract.
+	- Etherium contract to enable users to transact the IOT data with ether as currency.
 
 
 
