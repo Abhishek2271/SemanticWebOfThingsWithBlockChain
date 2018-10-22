@@ -12,7 +12,7 @@
 		-	Metamask for interacting with blockchain.
 		-	IPFS to store files 
 		
-	- Web front developed using node.js and react
+	- Front end development we used Reactjs and Node.js framework for backend.
 	
 **Implementation basics:**
 
