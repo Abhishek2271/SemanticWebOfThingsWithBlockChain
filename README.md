@@ -66,4 +66,4 @@ The project is fairly simple. The distributed application will:
 - Open the "CreateData.py" file.
 - Run the file.
 - Data should be collected every 10 min and should be written to file every hour. New file is only created per day so all data during a single day is appended in the same file.
-- master/SemanticWebAndIOT/Source/Transaction Project/Weather Data/ data contains the sample data we recorded.
+- /master/Source/Transaction%20Project/Weather%20data/Data/ data contains the sample data we recorded.
